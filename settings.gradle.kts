@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "TidyApp"
 include(":app")
+include(":core-ui")

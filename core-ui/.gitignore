@@ -1,0 +1,16 @@
+/build
+
+# 🛑 Ignorar diretórios do Android Studio
+*.iml
+.idea/
+.gradle/
+local.properties
+
+# 🛑 Ignorar diretórios de build e cache
+/build/
+.cxx/
+.externalNativeBuild/
+captures/
+*.log
+*.lock
+.gradle
