@@ -1,15 +1,21 @@
-    *.iml
-    .gradle
-    /local.properties
-    /.idea/caches
-    /.idea/libraries
-    /.idea/modules.xml
-    /.idea/workspace.xml
-    /.idea/navEditor.xml
-    /.idea/assetWizardSettings.xml
-    .DS_Store
-    /build
-    /captures
-    .externalNativeBuild
-    .cxx
-    local.properties
+# Ignorar diretórios do Android Studio e Gradle
+.idea/
+.gradle/
+local.properties
+*.iml
+
+# Ignorar pastas de build
+/build/
+.cxx/
+.externalNativeBuild/
+captures/
+*.log
+*.lock
+
+# Ignorar arquivos do core-ui
+core-ui/res/
+core-ui/src/main/AndroidManifest.xml
+
+# 🛑 Ignorar diretórios de build e cache
+app/build/
+core-ui/build/
