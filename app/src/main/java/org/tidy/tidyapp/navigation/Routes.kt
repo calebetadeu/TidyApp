@@ -12,5 +12,15 @@ sealed interface Route {
     data object Auth: Route
 
     @Serializable
+    data object Clients: Route
+
+    @Serializable
+    data object Billing: Route
+    @Serializable
+    data object Updates: Route
+    @Serializable
+    data object  Planning: Route
+
+    @Serializable
     data class Home(val email: String): Route
 }
