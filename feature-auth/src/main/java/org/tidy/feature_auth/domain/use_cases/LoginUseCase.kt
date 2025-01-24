@@ -1,7 +1,10 @@
-package org.tidy.feature_auth.domain
+package org.tidy.feature_auth.domain.use_cases
 
+import android.util.Patterns
 import org.tidy.core.domain.Result
-
+import org.tidy.feature_auth.domain.AuthError
+import org.tidy.feature_auth.domain.model.User
+import org.tidy.feature_auth.domain.repositories.AuthRepository
 
 
 class LoginUseCase(
@@ -12,7 +15,7 @@ class LoginUseCase(
         if (email.isBlank() || password.isBlank()) {
             return Result.Error(AuthError.InvalidCredentials)
         }
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             return Result.Error(AuthError.InvalidEmailFormat)
         }
         if (password.length < 6) {

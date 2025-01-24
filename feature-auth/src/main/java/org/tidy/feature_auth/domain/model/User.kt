@@ -1,4 +1,4 @@
-package org.tidy.feature_auth.domain
+package org.tidy.feature_auth.domain.model
 
 data class User(
     val uid: String,

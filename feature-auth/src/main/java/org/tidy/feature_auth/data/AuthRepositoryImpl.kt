@@ -1,25 +1,46 @@
 package org.tidy.feature_auth.data
 
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.*
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.tasks.await
+import org.tidy.feature_auth.domain.AuthError
+
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import org.tidy.core.domain.Result
 import org.tidy.feature_auth.data.dto.UserDto
 import org.tidy.feature_auth.data.mapper.toDomain
-import org.tidy.feature_auth.domain.AuthRepository
-import org.tidy.feature_auth.domain.User
-import com.google.firebase.auth.*
-import org.tidy.feature_auth.domain.AuthError
-import org.tidy.core.domain.Result
+import org.tidy.feature_auth.domain.model.User
+import org.tidy.feature_auth.domain.repositories.AuthRepository
 
+class AuthRepositoryImpl(
+    private val firebaseAuth: FirebaseAuth,
+    private val dataStore: DataStore<Preferences> // Adicionando DataStore
+) : AuthRepository {
 
-class AuthRepositoryImpl(private val firebaseAuth: FirebaseAuth) : AuthRepository {
+    companion object {
+        private val AUTHENTICATED_KEY = booleanPreferencesKey("is_authenticated")
+        private val EMAIL_KEY = stringPreferencesKey("user_email")
+    }
+
+    override val isAuthenticated: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[AUTHENTICATED_KEY] ?: false }
+
+    override val userEmail: Flow<String?> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[EMAIL_KEY] }
 
     override suspend fun login(email: String, password: String): Result<User, AuthError> {
-
         return try {
             val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             val user = UserDto.fromFirebaseUser(authResult.user)?.toDomain()
             if (user != null) {
+                saveUser(email) // Salvar usuário no DataStore
                 Result.Success(user)
             } else {
                 Result.Error(AuthError.UnknownError)
@@ -38,6 +59,7 @@ class AuthRepositoryImpl(private val firebaseAuth: FirebaseAuth) : AuthRepositor
             val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             val user = UserDto.fromFirebaseUser(authResult.user)?.toDomain()
             if (user != null) {
+                saveUser(email) // Salvar usuário no DataStore
                 Result.Success(user)
             } else {
                 Result.Error(AuthError.UnknownError)
@@ -53,7 +75,22 @@ class AuthRepositoryImpl(private val firebaseAuth: FirebaseAuth) : AuthRepositor
         }
     }
 
-    override fun logout() {
+    override suspend fun logout() {
         firebaseAuth.signOut()
+        clearUserData() // Limpar os dados no DataStore
+    }
+
+    override suspend fun saveUser(email: String) {
+        dataStore.edit { preferences ->
+            preferences[AUTHENTICATED_KEY] = true
+            preferences[EMAIL_KEY] = email
+        }
+    }
+
+    private suspend fun clearUserData() {
+        dataStore.edit { preferences ->
+            preferences[AUTHENTICATED_KEY] = false
+            preferences.remove(EMAIL_KEY)
+        }
     }
 }
