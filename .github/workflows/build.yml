@@ -1,0 +1,56 @@
+name: Android Build & Test
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Código
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Configurar JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: gradle
+
+      - name: 📦 Configurar Gradle Wrapper
+        run: chmod +x gradlew
+
+      - name: 🚀 Compilar o Projeto
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: ✅ Rodar Testes Unitários
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: 📊 Gerar Relatório de Cobertura
+        run: ./gradlew jacocoTestReport
+
+      - name: 📂 Salvar Relatório de Testes
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: app/build/reports/tests/testDebugUnitTest/
+
+      - name: 📂 Salvar Relatório de Cobertura
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: app/build/reports/jacoco/testDebugUnitTest/
+                  - name: Criar google-services.json
+                  run: echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+                  shell: bash
+                  env:
+                    GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}

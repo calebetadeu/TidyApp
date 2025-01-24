@@ -27,7 +27,7 @@ fun LoginRoot(
     LaunchedEffect(state.isLoggedIn) {
         if (state.isLoggedIn) {
             coroutineScope.launch {
-                snackBarHostState.showSnackbar("Login realizado com sucesso!")
+             //   snackBarHostState.showSnackbar("Login realizado com sucesso!")
                 onNavigateToHome(state.email)
             }
         }
@@ -45,7 +45,7 @@ fun LoginRoot(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { paddingValues ->
         LoginScreen(
-            modifier = Modifier.padding(paddingValues),
+            modifier = modifier.padding(paddingValues),
             state = state,
             onAction = { action -> viewModel.onAction(action) },
             onNavigateToRegister = onNavigateToRegister

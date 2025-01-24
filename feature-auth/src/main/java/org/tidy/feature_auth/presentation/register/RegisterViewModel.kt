@@ -11,8 +11,8 @@ import kotlinx.coroutines.launch
 import org.tidy.core.domain.onError
 import org.tidy.core.domain.onSuccess
 import org.tidy.feature_auth.domain.AuthError
-import org.tidy.feature_auth.domain.RegisterUseCase
-import org.tidy.feature_auth.domain.toUiModel
+import org.tidy.feature_auth.domain.use_cases.RegisterUseCase
+import org.tidy.feature_auth.domain.model.toUiModel
 
 
 class RegisterViewModel(

@@ -8,6 +8,8 @@ sealed interface Route {
 
     @Serializable
     data object Register: Route
+    @Serializable
+    data object Auth: Route
 
     @Serializable
     data class Home(val email: String): Route
