@@ -14,6 +14,7 @@ import org.tidy.core_ui.theme.TidyAppTheme
 import org.tidy.feature_auth.presentation.auth.AuthRoot
 import org.tidy.feature_auth.presentation.login.LoginRoot
 import org.tidy.feature_auth.presentation.register.RegisterRoot
+import org.tidy.tidyapp.presentation.HomeScreen
 
 @Composable
 fun NavigationApp(
@@ -84,6 +85,16 @@ fun NavigationApp(
                 ) {
                     Text(text = "Bem-vindo, $email")
                 }
+            }
+            composable<Route.Home>(
+            ) {
+                HomeScreen (
+                    onNavigateToClients = { navController.navigate(Route.Clients) },
+                    onNavigateToBilling = { navController.navigate(Route.Billing) },
+                    onNavigateToUpdates = { navController.navigate(Route.Updates) },
+                    onNavigateToPlanning = { navController.navigate(Route.Planning) },
+                    userEmail = "teste"
+                )
             }
         }
     }

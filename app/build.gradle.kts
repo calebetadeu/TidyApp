@@ -19,6 +19,10 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    buildFeatures {
+        compose =  true
+    }
+
 
     buildTypes {
         release {
@@ -45,8 +49,6 @@ dependencies {
 
     implementation(project(":core-ui"))
     implementation(project(":feature-auth"))
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.bom)
     implementation(libs.navigation.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.serialization.json)
