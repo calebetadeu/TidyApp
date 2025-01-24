@@ -1,0 +1,52 @@
+name: Android Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    name: Deploy APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Código
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Configurar JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: gradle
+
+      - name: 📦 Configurar Gradle Wrapper
+        run: chmod +x gradlew
+
+      - name: 🔐 Configurar Keystore (se necessário)
+        env:
+          ENCODED_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PATH: app/keystore.jks
+        run: |
+          echo "$ENCODED_KEYSTORE" | base64 --decode > $KEYSTORE_PATH
+
+      - name: 🔑 Configurar Credenciais de Assinatura
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+        run: |
+          echo "storePassword=$SIGNING_STORE_PASSWORD" >> gradle.properties
+          echo "keyPassword=$SIGNING_KEY_PASSWORD" >> gradle.properties
+          echo "keyAlias=$SIGNING_KEY_ALIAS" >> gradle.properties
+
+      - name: 🚀 Criar APK Assinado
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: 📂 Salvar APK Gerado
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-apk
+          path: app/build/outputs/apk/release/app-release.apk
