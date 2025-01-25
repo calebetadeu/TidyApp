@@ -12,7 +12,12 @@ sealed interface Route {
     data object Auth: Route
 
     @Serializable
-    data object Clients: Route
+    data object QuickAccessClients: Route
+    @Serializable
+    data object ListClients: Route
+    @Serializable
+    data object RegisterClient: Route
+
 
     @Serializable
     data object Billing: Route
@@ -23,4 +28,6 @@ sealed interface Route {
 
     @Serializable
     data class Home(val email: String): Route
+    @Serializable
+    data class EditClient(val clientId: Int): Route
 }
