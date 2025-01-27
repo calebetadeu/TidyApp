@@ -1,5 +1,7 @@
 package org.tidy.tidyapp.navigation
 
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -63,8 +65,8 @@ fun NavigationApp(
 
             // 📌 Tela de Registro
             composable<Route.Register>(
-//                exitTransition = { slideOutHorizontally() },
-//                popEnterTransition = { slideInHorizontally() }
+                exitTransition = { slideOutHorizontally() },
+                popEnterTransition = { slideInHorizontally() }
             ) {
                 RegisterRoot(
                     onNavigateToLogin = {
@@ -78,8 +80,8 @@ fun NavigationApp(
 
             // 📌 Tela Home
             composable<Route.Home>(
-//                exitTransition = { slideOutHorizontally() },
-//                popEnterTransition = { slideInHorizontally() }
+                exitTransition = { slideOutHorizontally() },
+                popEnterTransition = { slideInHorizontally() }
             ) { backStackEntry ->
                 val email = backStackEntry.arguments?.getString("email") ?: "Usuário"
 
@@ -94,10 +96,19 @@ fun NavigationApp(
             composable<Route.Home>(
             ) {
                 HomeScreen(
-                    onNavigateToClients = { navController.navigate(Route.QuickAccessClients) },
-                    onNavigateToBilling = { navController.navigate(Route.Billing) },
-                    onNavigateToUpdates = { navController.navigate(Route.Updates) },
-                    onNavigateToPlanning = { navController.navigate(Route.Planning) },
+                    onNavigateToClients = {
+                        navController.navigate(Route.QuickAccessClients) },
+                    onNavigateToBilling = {
+                      //  navController.navigate(Route.Billing)
+                                          },
+                    onNavigateToUpdates = {
+
+                       // navController.navigate(Route.Updates)
+
+                                          },
+                    onNavigateToPlanning = {
+                     //   navController.navigate(Route.Planning)
+                                           },
                     userEmail = "teste"
                 )
             }
@@ -119,7 +130,11 @@ fun NavigationApp(
             composable<Route.RegisterClient> {
                 RegisterClientScreen(
                     onNavigateBack = { navController.popBackStack() },
-                    onNavigateToClientList = { navController.navigate(Route.ListClients) }
+                    onNavigateToClientList = {
+                        navController.navigate(Route.ListClients) {
+                            popUpTo(Route.RegisterClient) { inclusive = true } // 🔥 Remove a tela de cadastro do backstack
+                        }
+                    }
 
                 )
             }

@@ -77,7 +77,7 @@ class ClientRepositoryImpl(
 
     override suspend fun addClient(client: Client): Result<Unit, ClientError> {
         return clientApi.addClient(client.toDto()).onSuccess {
-            clientDao.insertClient(client.toEntity()) // 🔥 Adiciona localmente
+            clientDao.insertClient(client.toEntity())
         }
     }
 

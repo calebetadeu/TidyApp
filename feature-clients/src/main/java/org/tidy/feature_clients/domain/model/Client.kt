@@ -31,6 +31,7 @@ fun Client.toDto(): ClientDto {
         estado = estado,
         latitude = latitude,
         longitude = longitude,
+        cnpj = cnpj,
         empresasTrabalhadas = empresasTrabalhadas
     )
 }

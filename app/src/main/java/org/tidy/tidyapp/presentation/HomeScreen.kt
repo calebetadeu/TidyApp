@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.internal.isLiveLiteralsEnabled
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -44,17 +45,18 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             QuickAccessButton("Clientes", onNavigateToClients)
-            QuickAccessButton("Faturamento", onNavigateToBilling)
-            QuickAccessButton("Atualizações", onNavigateToUpdates)
-            QuickAccessButton("Programações",  onNavigateToPlanning)
+            QuickAccessButton("Faturamento", onNavigateToBilling, enable = false)
+            QuickAccessButton("Atualizações", onNavigateToUpdates, enable = false)
+            QuickAccessButton("Programações",  onNavigateToPlanning, enable = false)
         }
     }
 }
 
 @Composable
-fun QuickAccessButton(text: String, onClick: () -> Unit) {
+fun QuickAccessButton(text: String, onClick: () -> Unit,enable: Boolean = true) {
     Button(
         onClick = onClick,
+        enabled = enable,
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)

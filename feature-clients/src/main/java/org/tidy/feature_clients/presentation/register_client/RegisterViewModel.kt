@@ -8,9 +8,10 @@ import org.tidy.core.domain.onError
 import org.tidy.core.domain.onSuccess
 import org.tidy.feature_clients.domain.model.Client
 import org.tidy.feature_clients.domain.useCase.AddClientUseCase
+import org.tidy.feature_clients.domain.useCase.SyncClientsUseCase
 
 class RegisterClientViewModel(
-    private val addClientUseCase: AddClientUseCase
+    private val addClientUseCase: AddClientUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RegisterClientState())
@@ -57,8 +58,8 @@ class RegisterClientViewModel(
             val client = Client(
                 codigoTidy = generateUniqueCodigoTidy(),
                 razaoSocial = state.value.razaoSocial,
-                nomeFantasia = state.value.nomeFantasia.takeIf { it.isNotEmpty() },
-                cnpj = state.value.cnpj.takeIf { it.isNotEmpty() },
+                nomeFantasia = state.value.nomeFantasia.takeIf { it.isNotBlank() }, // 🔥 Garante que não seja vazio
+                cnpj = state.value.cnpj.takeIf { it.isNotBlank() }, // 🔥
                 cidade = state.value.cidade,
                 estado = state.value.estado,
                 rota = state.value.rota,
@@ -84,7 +85,7 @@ class RegisterClientViewModel(
                         it.copy(
                             isLoading = false,
                             successMessage = null,
-                            errorMessage = "❌ Erro ao cadastrar cliente: $error"
+                            errorMessage = "❌ Erro ao cadastrar cliente: "
                         )
                     }
                 }
