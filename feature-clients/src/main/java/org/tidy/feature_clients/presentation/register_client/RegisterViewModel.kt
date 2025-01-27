@@ -2,11 +2,10 @@ package org.tidy.feature_clients.presentation.register_client
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.tidy.core.domain.onError
+import org.tidy.core.domain.onSuccess
 import org.tidy.feature_clients.domain.model.Client
 import org.tidy.feature_clients.domain.useCase.AddClientUseCase
 
@@ -24,29 +23,92 @@ class RegisterClientViewModel(
             is RegisterClientAction.OnCnpjChange -> _state.update { it.copy(cnpj = action.value) }
             is RegisterClientAction.OnCidadeChange -> _state.update { it.copy(cidade = action.value) }
             is RegisterClientAction.OnEstadoChange -> _state.update { it.copy(estado = action.value) }
-            is RegisterClientAction.OnRotaChange -> _state.update { it.copy(rota = action.value) } // 🚀 Novo campo
-            is RegisterClientAction.OnLatitudeChange -> _state.update { it.copy(latitude = action.value) } // 🚀 Novo campo
-            is RegisterClientAction.OnLongitudeChange -> _state.update { it.copy(longitude = action.value) } // 🚀 Novo campo
-            is RegisterClientAction.OnRegisterClick -> registerClient()
+            is RegisterClientAction.OnRotaChange -> _state.update { it.copy(rota = action.value) }
+            is RegisterClientAction.OnLocalizacaoChange -> _state.update { it.copy(localizacao = action.value) }
+            is RegisterClientAction.OnEmpresasTrabalhadasChange -> updateEmpresas(
+                action.empresa,
+                action.isSelected
+            )
+
+            RegisterClientAction.OnRegisterClick -> registerClient()
         }
     }
 
-    private fun registerClient() {
-        val client = Client(
-            codigoTidy = 0, // ID gerado automaticamente
-            razaoSocial = state.value.razaoSocial,
-            nomeFantasia = state.value.nomeFantasia,
-            cnpj = state.value.cnpj,
-            cidade = state.value.cidade,
-            estado = state.value.estado,
-            rota = state.value.rota, // 🚀 Corrigido!
-            latitude = 0.0, // 🚀 Se for nulo, usa 0.0
-            longitude = 0.0, // 🚀 Se for nulo, usa 0.0
-            empresasTrabalhadas = emptyList()
-        )
+    /**
+     * 🔥 **Atualiza a lista de empresas trabalhadas**
+     */
+    private fun updateEmpresas(empresa: String, isSelected: Boolean) {
+        _state.update {
+            val empresas = it.empresasTrabalhadas.toMutableList()
+            if (isSelected) empresas.add(empresa) else empresas.remove(empresa)
+            it.copy(empresasTrabalhadas = empresas)
+        }
+    }
 
+    /**
+     * 🚀 **Realiza o cadastro do cliente**
+     */
+    private fun registerClient() {
         viewModelScope.launch {
-            addClientUseCase(client)
+            _state.update { it.copy(isLoading = true, errorMessage = null, successMessage = null) }
+
+            val (latitude, longitude) = parseLatLong(state.value.localizacao)
+
+            val client = Client(
+                codigoTidy = generateUniqueCodigoTidy(),
+                razaoSocial = state.value.razaoSocial,
+                nomeFantasia = state.value.nomeFantasia.takeIf { it.isNotEmpty() },
+                cnpj = state.value.cnpj.takeIf { it.isNotEmpty() },
+                cidade = state.value.cidade,
+                estado = state.value.estado,
+                rota = state.value.rota,
+                empresasTrabalhadas = state.value.empresasTrabalhadas,
+                latitude = latitude,
+                longitude = longitude
+            )
+
+            val result = addClientUseCase(client)
+
+            result
+                .onSuccess {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            successMessage = "✅ Cliente cadastrado com sucesso!",
+                            errorMessage = null
+                        )
+                    }
+                }
+                .onError { error ->
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            successMessage = null,
+                            errorMessage = "❌ Erro ao cadastrar cliente: $error"
+                        )
+                    }
+                }
+        }
+    }
+
+    /**
+     * 🔥 **Gera um código Tidy único baseado no timestamp**
+     */
+    private fun generateUniqueCodigoTidy(): Int {
+        return (System.currentTimeMillis() % 90000 + 10000).toInt()
+    }
+
+    /**
+     * 🔥 **Converte localização (string) para latitude e longitude**
+     */
+    private fun parseLatLong(localizacao: String): Pair<Double?, Double?> {
+        val parts = localizacao.split(", ")
+        return if (parts.size == 2) {
+            val lat = parts[0].toDoubleOrNull()
+            val lon = parts[1].toDoubleOrNull()
+            lat to lon
+        } else {
+            null to null
         }
     }
 }

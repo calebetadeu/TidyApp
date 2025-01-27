@@ -7,13 +7,18 @@ data class Client(
     val codigoTidy: Int,
     val nomeFantasia: String?,
     val razaoSocial: String,
-    val rota: String,
+    val rota: String?,
     val cnpj: String?,
-    val cidade: String,
+    val cidade: String?,
     val estado: String,
     val latitude: Double?,
     val longitude: Double?,
-    val empresasTrabalhadas: List<String>
+    val empresasTrabalhadas: List<String>,
+    val codigoCasaDosRolamentos: Int?= 0,
+    val codigoDitrator: Int?= 0,
+    val codigoIndagril: Int?= 0,
+    val codigoPrimus: Int?= 0,
+    val codigoRomarMann: Int?= 0
 )
 
 fun Client.toDto(): ClientDto {
@@ -40,7 +45,12 @@ fun Client.toEntity(): ClientEntity {
         estado = estado,
         latitude = latitude,
         longitude = longitude,
-        empresasTrabalhadas = empresasTrabalhadas?.joinToString(",") ?: "",
-        cnpj = cnpj
+        empresasTrabalhadas = empresasTrabalhadas,
+        cnpj = cnpj,
+        codigoCasaDosRolamentos = codigoCasaDosRolamentos,
+        codigoDitrator = codigoDitrator,
+        codigoIndagril = codigoIndagril,
+        codigoPrimus = codigoPrimus,
+        codigoRomarMann =codigoPrimus
     )
 }

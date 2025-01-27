@@ -1,7 +1,8 @@
 package org.tidy.feature_clients.data.repostiory
 
-import android.util.Log
 import kotlinx.coroutines.flow.*
+import org.tidy.core.domain.ClientError
+import org.tidy.core.domain.onSuccess
 import org.tidy.feature_clients.data.local.ClientDao
 import org.tidy.feature_clients.data.remote.ClientApi
 import org.tidy.feature_clients.data.remote.toDomain
@@ -11,80 +12,89 @@ import org.tidy.feature_clients.domain.model.toDto
 import org.tidy.feature_clients.domain.model.toEntity
 import org.tidy.feature_clients.domain.repositories.ClientRepository
 import toDomain
+import  org.tidy.core.domain.Result
+import org.tidy.core.domain.map
 
 class ClientRepositoryImpl(
     private val clientDao: ClientDao,
     private val clientApi: ClientApi,
 ) : ClientRepository {
+
     override fun getClients(): Flow<List<Client>> = flow {
         try {
             val remoteClients = clientApi.getClients().firstOrNull() ?: emptyList()
-
-            if (remoteClients.isNotEmpty()) {
-                clientDao.insertClients(remoteClients.map { it.toEntity() }) // Atualiza o banco local
-                emit(remoteClients.map { it.toDomain() }) // Emite os dados buscados online
-            } else {
-                Log.w("ClientRepositoryImpl", "Nenhum cliente remoto encontrado. Buscando localmente...")
-            }
+            val clientEntities = remoteClients.map { it.toEntity() }
+            clientDao.insertClients(clientEntities) // 🔥 Atualiza banco local
+            emit(clientEntities.map { it.toDomain() }) // 🔥 Emite para UI
         } catch (e: Exception) {
-            Log.e("ClientRepositoryImpl", "Erro ao buscar clientes remotos: ${e.message}. Buscando localmente...", e)
+            emit(clientDao.getAllClients().firstOrNull()?.map { it.toDomain() }
+                ?: emptyList()) // 🔥 Busca local caso falhe
         }
+    }
 
-        val localClients = clientDao.getAllClients().firstOrNull() ?: emptyList()
-        emit(localClients.map { it.toDomain() }) // Emite os dados locais caso os remotos falhem
-    }.distinctUntilChanged() // 🔥 Evita reemissões repetitivas!
     override fun getFilteredClients(
         rota: String,
         cidade: String,
         empresa: String
     ): Flow<List<Client>> = flow {
         try {
-            emit(clientDao.getFilteredClients(rota, cidade, empresa)
-                .map { list -> list.map { it.toDomain() } }
-                .firstOrNull() ?: emptyList()
-            )
+            // 🔹 Busca primeiro no banco local
+            val localClients = clientDao.getFilteredClients(rota, cidade, empresa)
+                .firstOrNull()?.map { it.toDomain() } ?: emptyList()
+
+            emit(localClients) // 🔥 Emite os dados locais primeiro
+
+            // 🔹 Se não encontrar localmente, busca no Firestore
+            if (localClients.isEmpty()) {
+                val remoteClients = clientApi.getClients().firstOrNull() ?: emptyList()
+                val filteredRemoteClients = remoteClients.filter { client ->
+                    (rota.isEmpty() || client.rota == rota) &&
+                            (cidade.isEmpty() || client.cidade == cidade) &&
+                            (empresa.isEmpty() || client.empresasTrabalhadas.contains(empresa))
+                }
+
+                // 🔥 Salva os clientes filtrados no banco local para futuras buscas offline
+                clientDao.insertClients(filteredRemoteClients.map { it.toEntity() })
+
+                emit(filteredRemoteClients.map { it.toDomain() }) // 🔥 Retorna a versão `Client`
+            }
         } catch (e: Exception) {
-            Log.e("ClientRepositoryImpl", "Erro ao filtrar clientes: ${e.message}", e)
+            println("Erro ao filtrar clientes: ${e.message}")
+            emit(emptyList()) // 🔥 Se houver erro, retorna lista vazia
         }
     }
 
     override suspend fun syncClients() {
         try {
-            val remoteClients = clientApi.getClients().firstOrNull() ?: emptyList()
-            clientDao.insertClients(remoteClients.map { it.toEntity() }) // Insere no banco local
-            Log.d("ClientRepositoryImpl", "Clientes sincronizados com sucesso.")
+            val remoteClients = clientApi.getClients().firstOrNull()
+            remoteClients?.let {
+                clientDao.insertClients(it.map { client -> client.toEntity() }) // 🔥 Insere localmente
+            }
         } catch (e: Exception) {
-            Log.e("ClientRepositoryImpl", "Erro ao sincronizar clientes: ${e.message}", e)
+            println("Erro ao sincronizar clientes: ${e.message}") // Log de erro
         }
     }
 
-    override suspend fun addClient(client: Client) {
-        try {
-            clientDao.insertClient(client.toEntity()) // Adiciona localmente
-            clientApi.addClient(client.toDto()) // Sincroniza com Firebase
-            Log.d("ClientRepositoryImpl", "Cliente adicionado com sucesso: $client")
-        } catch (e: Exception) {
-            Log.e("ClientRepositoryImpl", "Erro ao adicionar cliente: ${e.message}", e)
+    override suspend fun addClient(client: Client): Result<Unit, ClientError> {
+        return clientApi.addClient(client.toDto()).onSuccess {
+            clientDao.insertClient(client.toEntity()) // 🔥 Adiciona localmente
         }
     }
 
-    override suspend fun updateClient(client: Client) {
-        try {
-            clientDao.updateClient(client.toEntity()) // Atualiza localmente
-            clientApi.updateClient(client.toDto()) // Sincroniza com Firebase
-            Log.d("ClientRepositoryImpl", "Cliente atualizado com sucesso: $client")
-        } catch (e: Exception) {
-            Log.e("ClientRepositoryImpl", "Erro ao atualizar cliente: ${e.message}", e)
+    override suspend fun updateClient(client: Client): Result<Unit, ClientError> {
+        return clientApi.updateClient(client.toDto()).onSuccess {
+            clientDao.updateClient(client.toEntity()) // 🔥 Atualiza localmente
         }
     }
 
     override suspend fun getClientById(clientId: Int): Client? {
-        return try {
-            clientDao.getClientById(clientId)?.toDomain()
-        } catch (e: Exception) {
-            Log.e("ClientRepositoryImpl", "Erro ao buscar cliente por ID: ${e.message}", e)
-            null
-        }
+        return clientDao.getClientById(clientId)?.toDomain() // 🔥 Busca no banco local
     }
 
+    override suspend fun getClientByIdRemote(clientId: Int): Result<Client, ClientError> {
+        return clientApi.getClientById(clientId).map {
+            it.toDomain()
+
+        }
+    }
 }

@@ -60,8 +60,8 @@ class ClientListViewModel(
 
         viewModelScope.launch {
             val filteredClients = allClients.filter { client ->
-                (rota.isEmpty() || client.rota.contains(rota, ignoreCase = true)) &&
-                        (cidade.isEmpty() || client.cidade.contains(cidade, ignoreCase = true)) &&
+                (rota.isEmpty() || client.rota?.contains(rota, ignoreCase = true) == true) &&
+                        (cidade.isEmpty() || client.cidade?.contains(cidade, ignoreCase = true) == true) &&
                         (empresa.isEmpty() || client.empresasTrabalhadas.any { it.contains(empresa, ignoreCase = true) })
             }
 

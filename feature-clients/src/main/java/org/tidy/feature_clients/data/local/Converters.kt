@@ -5,15 +5,18 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 
+
 class Converters {
+
+    private val gson = Gson()
+
     @TypeConverter
     fun fromListString(value: List<String>?): String {
-        return Gson().toJson(value)
+        return value?.joinToString(",") ?: "" // 🔥 Agora salvamos como string separada por vírgulas
     }
 
     @TypeConverter
-    fun toListString(value: String): List<String> {
-        val listType = object : TypeToken<List<String>>() {}.type
-        return Gson().fromJson(value, listType)
+    fun toListString(value: String?): List<String> {
+        return value?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList() // 🔥 Agora tratamos corretamente
     }
 }

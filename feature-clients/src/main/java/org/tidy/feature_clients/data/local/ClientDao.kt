@@ -31,3 +31,23 @@ interface ClientDao {
     suspend fun getClientById(clientId: Int): ClientEntity?
 
 }
+
+
+//@Dao
+//interface ClientDao {
+//
+//    @Query("SELECT * FROM clients")
+//    fun getAllClients(): Flow<List<ClientEntity>>
+//
+//    @Query("SELECT * FROM clients WHERE codigoTidy = :clientId")
+//    suspend fun getClientById(clientId: Int): ClientEntity?
+//
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    suspend fun insertClients(clients: List<ClientEntity>)
+//
+//    @Update
+//    suspend fun updateClient(client: ClientEntity)
+//
+//    @Query("DELETE FROM clients")
+//    suspend fun clearClients()
+//}

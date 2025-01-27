@@ -1,56 +1,31 @@
 package org.tidy.feature_clients.data.repostiory
 
 
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.tasks.await
+import org.tidy.core.domain.ClientError
 import org.tidy.feature_clients.data.remote.ClientApi
 import org.tidy.feature_clients.data.remote.ClientDto
+import org.tidy.feature_clients.data.remote.FirebaseClientServiceImpl
+import org.tidy.core.domain.Result
 
 class ClientApiImpl(
-    val database: FirebaseDatabase
+    private val firebaseService: FirebaseClientServiceImpl // 🔥 Usa o serviço do Firebase
 ) : ClientApi {
 
-    private val clientsRef: DatabaseReference = database.getReference("clients")
-
-    override fun getClients(): Flow<List<ClientDto>> = callbackFlow {
-        val listener = clientsRef.addValueEventListener(
-            object : com.google.firebase.database.ValueEventListener {
-                override fun onDataChange(snapshot: com.google.firebase.database.DataSnapshot) {
-                    val clients = snapshot.children.mapNotNull { it.getValue(ClientDto::class.java) }
-                    trySend(clients).isSuccess
-                }
-
-                override fun onCancelled(error: com.google.firebase.database.DatabaseError) {
-                    close(error.toException())
-                }
-            }
-        )
-
-        awaitClose { clientsRef.removeEventListener(listener) }
+    override fun getClients(): Flow<List<ClientDto>> {
+        return firebaseService.getClients() // 🔥 Busca clientes do Firestore
     }
 
-    override suspend fun addClient(client: ClientDto) {
-        val newClientRef = clientsRef.push() // Cria um novo nó para o cliente no Firebase
-        newClientRef.setValue(client).await()
+    override suspend fun addClient(client: ClientDto): Result<Unit, ClientError> {
+        return firebaseService.addClient(client) // 🔥 Salva o cliente no Firestore com Result
     }
 
-    override suspend fun updateClient(client: ClientDto) {
-        try {
-            val clientQuery = clientsRef.orderByChild("Codigo Tidy").equalTo(client.codigoTidy.toDouble()).get().await()
+    override suspend fun updateClient(client: ClientDto): Result<Unit, ClientError> {
+        return firebaseService.updateClient(client) // 🔥 Atualiza o cliente no Firestore com Result
+    }
 
-            if (clientQuery.exists()) {
-                for (child in clientQuery.children) {
-                    child.ref.setValue(client).await()
-                }
-            } else {
-                throw Exception("Cliente não encontrado para atualização")
-            }
-        } catch (e: Exception) {
-            throw Exception("Erro ao atualizar cliente no Firebase: ${e.message}")
-        }
+    override suspend fun getClientById(clientId: Int): Result<ClientDto, ClientError> {
+        return firebaseService.getClientById(clientId) // 🔥 Busca cliente no Firestore com Result
     }
 }
+//ClientApiImpl

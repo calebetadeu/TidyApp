@@ -8,9 +8,12 @@ data class EditClientState(
     val razaoSocial: String = "",
     val nomeFantasia: String = "",
     val cnpj: String = "",
-    val latitude: Double? = null,
-    val longitude: Double? = null,
+    val localizacao: String = "Localização não definida", // 🔥 Agora um único campo
+    val cidade: String = "",
+    val estado: String = "",
+    val rota: String = "",
+    val empresasTrabalhadas: List<String> = emptyList(), // 🔥 Lista de empresas
     val isLoading: Boolean = false,
-    val successMessage: String? = null,  // 🚀 Adicionado para exibir mensagens de sucesso
-    val errorMessage: String? = null     // 🚀 Adicionado para exibir mensagens de erro
+    val successMessage: String? = null,
+    val errorMessage: String? = null
 )

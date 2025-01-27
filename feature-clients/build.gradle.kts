@@ -55,6 +55,7 @@ dependencies {
 
     implementation(libs.firebase.database)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.firebase.firestore) // 🔥 Firestore com suporte a Kotlin
 
     implementation(libs.play.services.location)
     implementation(libs.datastore.preferences)

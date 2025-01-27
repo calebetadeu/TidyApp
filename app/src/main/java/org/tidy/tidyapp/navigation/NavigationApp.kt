@@ -110,13 +110,16 @@ fun NavigationApp(
             }
             composable<Route.QuickAccessClients> {
                 QuickAccessScreen(
-                    onRegisterClientClick = { navController.navigate(Route.RegisterClient) },
-                    onViewClientsClick = { navController.navigate(Route.ListClients) }
+                    onRegisterClientClick = {
+                        navController.navigate(Route.RegisterClient) },
+                    onViewClientsClick = {
+                        navController.navigate(Route.ListClients) }
                 )
             }
             composable<Route.RegisterClient> {
                 RegisterClientScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToClientList = { navController.navigate(Route.ListClients) }
 
                 )
             }
