@@ -25,3 +25,4 @@ include(":core-ui")
 include(":core")
 include(":feature-auth")
 
+include(":feature-clients")

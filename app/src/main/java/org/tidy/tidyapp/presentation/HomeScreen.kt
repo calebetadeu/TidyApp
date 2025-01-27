@@ -44,17 +44,18 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             QuickAccessButton("Clientes", onNavigateToClients)
-            QuickAccessButton("Faturamento", onNavigateToBilling)
-            QuickAccessButton("Atualizações", onNavigateToUpdates)
-            QuickAccessButton("Programações",  onNavigateToPlanning)
+            QuickAccessButton("Faturamento", onNavigateToBilling, enable = false)
+            QuickAccessButton("Atualizações", onNavigateToUpdates, enable = false)
+            QuickAccessButton("Programações",  onNavigateToPlanning, enable = false)
         }
     }
 }
 
 @Composable
-fun QuickAccessButton(text: String, onClick: () -> Unit) {
+fun QuickAccessButton(text: String, onClick: () -> Unit,enable: Boolean = true) {
     Button(
         onClick = onClick,
+        enabled = enable,
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)

@@ -1,52 +1,58 @@
-name: Android Deploy
+name: Deploy Android APK to Firebase App Distribution
 
 on:
-  workflow_dispatch:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - master  # 🔥 Agora o workflow será acionado na branch master
 
 jobs:
-  deploy:
-    name: Deploy APK
+  build:
+    name: Build and Deploy APK to Firebase
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout Código
+      # 🔹 Checkout do código-fonte do repositório
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🛠️ Configurar JDK
+      # 🔹 Configura o ambiente do JDK necessário para compilar o app
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: gradle
 
-      - name: 📦 Configurar Gradle Wrapper
+      # 🔹 Configura cache do Gradle para otimizar o tempo de build
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}
+
+      # 🔹 Gera o arquivo de credenciais do Firebase no runner
+      - name: Create Google Services JSON
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > "${{ github.workspace }}/android/app/google-services.json"
+
+      # 🔹 Concede permissão para executar Gradle
+      - name: Grant execute permission for Gradle
         run: chmod +x gradlew
 
-      - name: 🔐 Configurar Keystore (se necessário)
-        env:
-          ENCODED_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          KEYSTORE_PATH: app/keystore.jks
-        run: |
-          echo "$ENCODED_KEYSTORE" | base64 --decode > $KEYSTORE_PATH
+      # 🔹 Faz o build do APK
+      - name: Build Android APK
+        run: ./gradlew assembleRelease
 
-      - name: 🔑 Configurar Credenciais de Assinatura
-        env:
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-        run: |
-          echo "storePassword=$SIGNING_STORE_PASSWORD" >> gradle.properties
-          echo "keyPassword=$SIGNING_KEY_PASSWORD" >> gradle.properties
-          echo "keyAlias=$SIGNING_KEY_ALIAS" >> gradle.properties
-
-      - name: 🚀 Criar APK Assinado
-        run: ./gradlew assembleRelease --stacktrace
-
-      - name: 📂 Salvar APK Gerado
-        uses: actions/upload-artifact@v3
+      # 🔹 Faz upload do APK para o Firebase App Distribution
+      - name: Upload to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-          name: release-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsJson: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: testers  # 🔥 Substitua pelo grupo de testers do Firebase
+          releaseNotes: "🚀 Nova versão disponível para teste!"
+          file: app/build/outputs/apk/release/app-release.apk

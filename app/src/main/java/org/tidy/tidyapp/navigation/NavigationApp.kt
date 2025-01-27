@@ -1,5 +1,7 @@
 package org.tidy.tidyapp.navigation
 
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,10 +12,16 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import org.tidy.core_ui.theme.TidyAppTheme
 import org.tidy.feature_auth.presentation.auth.AuthRoot
 import org.tidy.feature_auth.presentation.login.LoginRoot
 import org.tidy.feature_auth.presentation.register.RegisterRoot
+import org.tidy.feature_clients.presentation.QuickAccessScreen
+import org.tidy.feature_clients.presentation.clients_list.ClientListScreen
+import org.tidy.feature_clients.presentation.edit_client.EditClientScreen
+import org.tidy.feature_clients.presentation.register_client.RegisterClientScreen
+import org.tidy.tidyapp.navigation.Route.Home
 import org.tidy.tidyapp.presentation.HomeScreen
 
 @Composable
@@ -72,11 +80,11 @@ fun NavigationApp(
             }
 
             // 📌 Tela Home
-            composable<Route.Home>(
-//                exitTransition = { slideOutHorizontally() },
-//                popEnterTransition = { slideInHorizontally() }
+            composable<Home>(
+                exitTransition = { slideOutHorizontally() },
+                popEnterTransition = { slideInHorizontally() }
             ) { backStackEntry ->
-                val email = backStackEntry.arguments?.getString("email") ?: "Usuário"
+                val email = backStackEntry.toRoute<Home>().email
 
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -88,14 +96,58 @@ fun NavigationApp(
             }
             composable<Route.Home>(
             ) {
-                HomeScreen (
-                    onNavigateToClients = { navController.navigate(Route.Clients) },
-                    onNavigateToBilling = { navController.navigate(Route.Billing) },
-                    onNavigateToUpdates = { navController.navigate(Route.Updates) },
-                    onNavigateToPlanning = { navController.navigate(Route.Planning) },
+                HomeScreen(
+                    onNavigateToClients = {
+                        navController.navigate(Route.QuickAccessClients) },
+                    onNavigateToBilling = {
+                      //  navController.navigate(Route.Billing)
+                                          },
+                    onNavigateToUpdates = {
+
+                       // navController.navigate(Route.Updates)
+
+                                          },
+                    onNavigateToPlanning = {
+                     //   navController.navigate(Route.Planning)
+                                           },
                     userEmail = "teste"
                 )
             }
+            composable<Route.ListClients> {
+                ClientListScreen(
+                    onNavigateToEditClient = { clientId ->
+                        navController.navigate(Route.EditClient(clientId))
+                    }
+                )
+            }
+            composable<Route.QuickAccessClients> {
+                QuickAccessScreen(
+                    onRegisterClientClick = {
+                        navController.navigate(Route.RegisterClient) },
+                    onViewClientsClick = {
+                        navController.navigate(Route.ListClients) }
+                )
+            }
+            composable<Route.RegisterClient> {
+                RegisterClientScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToClientList = {
+                        navController.navigate(Route.ListClients) {
+                            popUpTo(Route.RegisterClient) { inclusive = true } // 🔥 Remove a tela de cadastro do backstack
+                        }
+                    }
+
+                )
+            }
+            composable<Route.EditClient> { backStackEntry ->
+                val client: Route.EditClient = backStackEntry.toRoute()
+                EditClientScreen(
+                    clientId = client.clientId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+
+            }
+
         }
     }
 }
