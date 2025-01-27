@@ -1,57 +1,44 @@
-name: Deploy Android APK to Firebase App Distribution
+name: Deploy Android App to Firebase App Distribution
 
 on:
   push:
     branches:
-      - master  # 🔥 Agora o workflow será acionado na branch master
+      - master  # 🚀 Dispara o workflow quando um push ocorre na branch master
 
 jobs:
   build:
-    name: Build and Deploy APK to Firebase
+    name: Build and Deploy
     runs-on: ubuntu-latest
 
     steps:
-      # 🔹 Checkout do código-fonte do repositório
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 🔹 Configura o ambiente do JDK necessário para compilar o app
-      - name: Set up JDK
+      - name: Setup JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # 🔹 Configura cache do Gradle para otimizar o tempo de build
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: gradle-${{ runner.os }}
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      # 🔹 Gera o arquivo de credenciais do Firebase no runner
-      - name: Create Google Services JSON
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: echo "$FIREBASE_SERVICE_ACCOUNT" > "/home/runner/work/TidyApp/TidyApp/app/google-services.json"
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      # 🔹 Concede permissão para executar Gradle
-      - name: Grant execute permission for Gradle
+      - name: Setup google-services.json
+        run: echo "$FIREBASE_SERVICE_ACCOUNT" | base64 --decode > ./app/google-services.json
+
+      - name: Grant execute permission to gradlew
         run: chmod +x gradlew
 
-      # 🔹 Faz o build do APK
-      - name: Build Android APK
+      - name: Build Release APK
         run: ./gradlew assembleRelease
 
-      # 🔹 Faz upload do APK para o Firebase App Distribution
-      - name: Upload to Firebase App Distribution
+      - name: Upload APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsJson: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          groups: testers  # 🔥 Substitua pelo grupo de testers do Firebase
-          releaseNotes: "🚀 Nova versão disponível para teste!"
+          groups: testers
           file: app/build/outputs/apk/release/app-release.apk
