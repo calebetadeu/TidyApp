@@ -21,6 +21,7 @@ import org.tidy.feature_clients.presentation.QuickAccessScreen
 import org.tidy.feature_clients.presentation.clients_list.ClientListScreen
 import org.tidy.feature_clients.presentation.edit_client.EditClientScreen
 import org.tidy.feature_clients.presentation.register_client.RegisterClientScreen
+import org.tidy.tidyapp.navigation.Route.Home
 import org.tidy.tidyapp.presentation.HomeScreen
 
 @Composable
@@ -65,8 +66,8 @@ fun NavigationApp(
 
             // 📌 Tela de Registro
             composable<Route.Register>(
-                exitTransition = { slideOutHorizontally() },
-                popEnterTransition = { slideInHorizontally() }
+//                exitTransition = { slideOutHorizontally() },
+//                popEnterTransition = { slideInHorizontally() }
             ) {
                 RegisterRoot(
                     onNavigateToLogin = {
@@ -79,11 +80,11 @@ fun NavigationApp(
             }
 
             // 📌 Tela Home
-            composable<Route.Home>(
+            composable<Home>(
                 exitTransition = { slideOutHorizontally() },
                 popEnterTransition = { slideInHorizontally() }
             ) { backStackEntry ->
-                val email = backStackEntry.arguments?.getString("email") ?: "Usuário"
+                val email = backStackEntry.toRoute<Home>().email
 
                 Column(
                     modifier = Modifier.fillMaxSize(),
