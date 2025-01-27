@@ -2,13 +2,15 @@ package org.tidy.feature_clients.presentation.register_client
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.tidy.core.domain.onError
 import org.tidy.core.domain.onSuccess
 import org.tidy.feature_clients.domain.model.Client
 import org.tidy.feature_clients.domain.useCase.AddClientUseCase
-import org.tidy.feature_clients.domain.useCase.SyncClientsUseCase
 
 class RegisterClientViewModel(
     private val addClientUseCase: AddClientUseCase,
