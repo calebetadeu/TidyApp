@@ -23,11 +23,13 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      - name: Setup google-services.json
-        run: echo "$FIREBASE_SERVICE_ACCOUNT" | base64 --decode > ./app/google-services.json
+      - name: Criar google-services.json
+        run: echo "$FIREBASE_SERVICE_ACCOUNT" | base64 --decode > app/google-services.json
+
 
       - name: Grant execute permission to gradlew
         run: chmod +x gradlew
