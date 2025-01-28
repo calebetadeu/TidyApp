@@ -23,18 +23,17 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
       - name: Decode Google Services JSON
         run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d > app/google-services.json
-          # Verify the file exists and is valid JSON
-          ls -l app/google-services.json
-          cat app/google-services.json | jq .
+          mkdir -p android/app
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 --decode > android/app/google-services.json
+          ls -l android/app/google-services.json  # ✅ Verifica se o arquivo foi criado corretamente
+
       - name: Grant execute permission to gradlew
-        run: chmod +x gradlew
+        run: chmod +x ./gradlew
 
       - name: Build Release APK
         run: ./gradlew assembleRelease
@@ -45,4 +44,4 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsJson: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           groups: testers
-          file: app/build/outputs/apk/release/app-release.apk
+          file: android/app/build/outputs/apk/release/app-release.apk  # 📌 Corrigido caminho do APK
