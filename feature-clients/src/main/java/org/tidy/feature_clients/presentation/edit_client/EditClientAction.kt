@@ -2,7 +2,7 @@ package org.tidy.feature_clients.presentation.edit_client
 
 
 sealed class EditClientAction {
-    data class LoadClient(val clientId: Int) : EditClientAction()
+    data class LoadClient(val clientId: String) : EditClientAction()
     data class OnRazaoSocialChange(val value: String) : EditClientAction()
     data class OnNomeFantasiaChange(val value: String) : EditClientAction()
     data class OnCnpjChange(val value: String) : EditClientAction()

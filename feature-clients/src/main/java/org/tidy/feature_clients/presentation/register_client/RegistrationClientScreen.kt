@@ -41,12 +41,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import org.tidy.feature_clients.data.remote.LocationDto
+import org.tidy.feature_clients.presentation.clients_list.components.CityDropdownWithSearch
+import org.tidy.feature_clients.presentation.clients_list.components.StateDropdown
 import org.tidy.feature_clients.presentation.clients_list.components.getCurrentLocation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterClientScreen(
     viewModel: RegisterClientViewModel = koinViewModel(),
+    locations: List<LocationDto>,
     onNavigateBack: () -> Unit,
     onNavigateToClientList: () -> Unit // 🔥 Nova função para redirecionar após registro bem-sucedido
 ) {
@@ -116,20 +120,39 @@ fun RegisterClientScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
-
-            OutlinedTextField(
-                value = state.cidade,
-                onValueChange = { viewModel.onAction(RegisterClientAction.OnCidadeChange(it)) },
-                label = { Text("Cidade") },
-                modifier = Modifier.fillMaxWidth()
+            StateDropdown(
+                locations = locations,
+                selectedState = state.estado,
+                defaultState = "",
+                onStateSelected = { newState ->
+                   viewModel.onAction(RegisterClientAction.OnEstadoChange(newState))
+                }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            CityDropdownWithSearch(
+                locations = locations,
+                selectedState =state.estado,
+                selectedCity = state.cidade,
+                defaultCity = "",
+                onCitySelected = { city ->
+                   viewModel.onAction(RegisterClientAction.OnCidadeChange(city))
+                }
             )
 
-            OutlinedTextField(
-                value = state.estado,
-                onValueChange = { viewModel.onAction(RegisterClientAction.OnEstadoChange(it)) },
-                label = { Text("Estado") },
-                modifier = Modifier.fillMaxWidth()
-            )
+
+//            OutlinedTextField(
+//                value = state.cidade,
+//                onValueChange = { viewModel.onAction(RegisterClientAction.OnCidadeChange(it)) },
+//                label = { Text("Cidade") },
+//                modifier = Modifier.fillMaxWidth()
+//            )
+//
+//            OutlinedTextField(
+//                value = state.estado,
+//                onValueChange = { viewModel.onAction(RegisterClientAction.OnEstadoChange(it)) },
+//                label = { Text("Estado") },
+//                modifier = Modifier.fillMaxWidth()
+//            )
 
             // 🚀 **Campo para selecionar a Rota**
             OutlinedTextField(
@@ -167,7 +190,12 @@ fun RegisterClientScreen(
                     Checkbox(
                         checked = empresa in state.empresasTrabalhadas,
                         onCheckedChange = {
-                            viewModel.onAction(RegisterClientAction.OnEmpresasTrabalhadasChange(empresa, it))
+                            viewModel.onAction(
+                                RegisterClientAction.OnEmpresasTrabalhadasChange(
+                                    empresa,
+                                    it
+                                )
+                            )
                         }
                     )
                     Text(text = empresa, modifier = Modifier.padding(start = 8.dp))

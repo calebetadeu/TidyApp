@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import org.koin.androidx.compose.koinViewModel
 import org.tidy.core_ui.theme.TidyAppTheme
 import org.tidy.feature_auth.presentation.auth.AuthRoot
 import org.tidy.feature_auth.presentation.login.LoginRoot
@@ -20,6 +21,7 @@ import org.tidy.feature_auth.presentation.register.RegisterRoot
 import org.tidy.feature_clients.presentation.QuickAccessScreen
 import org.tidy.feature_clients.presentation.clients_list.ClientListScreen
 import org.tidy.feature_clients.presentation.edit_client.EditClientScreen
+import org.tidy.feature_clients.presentation.location.LocationsViewModel
 import org.tidy.feature_clients.presentation.register_client.RegisterClientScreen
 import org.tidy.tidyapp.navigation.Route.Home
 import org.tidy.tidyapp.presentation.HomeScreen
@@ -28,6 +30,8 @@ import org.tidy.tidyapp.presentation.HomeScreen
 fun NavigationApp(
     modifier: Modifier = Modifier
 ) {
+
+    val locationViewModel = koinViewModel<LocationsViewModel>()
     TidyAppTheme {
         val navController = rememberNavController()
 
@@ -114,7 +118,9 @@ fun NavigationApp(
                 )
             }
             composable<Route.ListClients> {
+
                 ClientListScreen(
+                    locations =locationViewModel.locations ,
                     onNavigateToEditClient = { clientId ->
                         navController.navigate(Route.EditClient(clientId))
                     }
@@ -131,6 +137,7 @@ fun NavigationApp(
             composable<Route.RegisterClient> {
                 RegisterClientScreen(
                     onNavigateBack = { navController.popBackStack() },
+                    locations =locationViewModel.locations ,
                     onNavigateToClientList = {
                         navController.navigate(Route.ListClients) {
                             popUpTo(Route.RegisterClient) { inclusive = true } // 🔥 Remove a tela de cadastro do backstack
@@ -141,8 +148,10 @@ fun NavigationApp(
             }
             composable<Route.EditClient> { backStackEntry ->
                 val client: Route.EditClient = backStackEntry.toRoute()
+
                 EditClientScreen(
                     clientId = client.clientId,
+                    locations =locationViewModel.locations,
                     onNavigateBack = { navController.popBackStack() }
                 )
 

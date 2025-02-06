@@ -29,5 +29,5 @@ sealed interface Route {
     @Serializable
     data class Home(val email: String): Route
     @Serializable
-    data class EditClient(val clientId: Int): Route
+    data class EditClient(val clientId: String): Route
 }

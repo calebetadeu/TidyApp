@@ -50,9 +50,12 @@ dependencies {
 
     implementation(project(":core-ui"))
 
+    implementation("androidx.paging:paging-compose:3.3.5")
+
+
     implementation(libs.bundles.koin)
     implementation(libs.gson)
-
+    implementation(libs.androidx.paging.runtime.ktx)
     implementation(libs.firebase.database)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.firebase.firestore) // 🔥 Firestore com suporte a Kotlin

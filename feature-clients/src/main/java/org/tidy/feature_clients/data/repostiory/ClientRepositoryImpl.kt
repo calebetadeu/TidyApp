@@ -1,24 +1,42 @@
 package org.tidy.feature_clients.data.repostiory
 
-import kotlinx.coroutines.flow.*
+import androidx.paging.PagingData
+import androidx.paging.map
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import org.tidy.core.domain.ClientError
+import org.tidy.core.domain.Result
+import org.tidy.core.domain.map
 import org.tidy.core.domain.onSuccess
 import org.tidy.feature_clients.data.local.ClientDao
 import org.tidy.feature_clients.data.remote.ClientApi
 import org.tidy.feature_clients.data.remote.toDomain
 import org.tidy.feature_clients.data.remote.toEntity
+
 import org.tidy.feature_clients.domain.model.Client
+import org.tidy.feature_clients.domain.model.ClientFilters
 import org.tidy.feature_clients.domain.model.toDto
 import org.tidy.feature_clients.domain.model.toEntity
 import org.tidy.feature_clients.domain.repositories.ClientRepository
 import toDomain
-import  org.tidy.core.domain.Result
-import org.tidy.core.domain.map
 
 class ClientRepositoryImpl(
     private val clientDao: ClientDao,
     private val clientApi: ClientApi,
 ) : ClientRepository {
+
+    override fun getClientsPaging(filters: ClientFilters): Flow<PagingData<Client>> {
+        return clientApi.getClientsPaging(filters)
+            .map { pagingData ->
+                pagingData.map { clientDto ->
+                    val clientEntity = clientDto.toEntity()
+                    clientDao.insertClient(clientEntity) // 🔥 Agora salva no Room aqui
+                    clientDto.toDomain()  // 🔥 Retorna para UI
+                }
+            }
+    }
 
     override fun getClients(): Flow<List<Client>> = flow {
         try {
@@ -87,11 +105,11 @@ class ClientRepositoryImpl(
         }
     }
 
-    override suspend fun getClientById(clientId: Int): Client? {
+    override suspend fun getClientById(clientId: String): Client? {
         return clientDao.getClientById(clientId)?.toDomain() // 🔥 Busca no banco local
     }
 
-    override suspend fun getClientByIdRemote(clientId: Int): Result<Client, ClientError> {
+    override suspend fun getClientByIdRemote(clientId: String): Result<Client, ClientError> {
         return clientApi.getClientById(clientId).map {
             it.toDomain()
 

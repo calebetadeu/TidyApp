@@ -58,16 +58,15 @@ class RegisterClientViewModel(
             val (latitude, longitude) = parseLatLong(state.value.localizacao)
 
             val client = Client(
-                codigoTidy = generateUniqueCodigoTidy(),
-                razaoSocial = state.value.razaoSocial,
-                nomeFantasia = state.value.nomeFantasia.takeIf { it.isNotBlank() }, // 🔥 Garante que não seja vazio
-                cnpj = state.value.cnpj.takeIf { it.isNotBlank() }, // 🔥
+                nomeFantasia = state.value.nomeFantasia.takeIf { it.isNotBlank() },
+                razaoSocial = state.value.razaoSocial, // 🔥 Garante que não seja vazio
+                rota = state.value.rota, // 🔥
+                cnpj = state.value.cnpj.takeIf { it.isNotBlank() },
                 cidade = state.value.cidade,
                 estado = state.value.estado,
-                rota = state.value.rota,
                 empresasTrabalhadas = state.value.empresasTrabalhadas,
                 latitude = latitude,
-                longitude = longitude
+                longitude = longitude,
             )
 
             val result = addClientUseCase(client)

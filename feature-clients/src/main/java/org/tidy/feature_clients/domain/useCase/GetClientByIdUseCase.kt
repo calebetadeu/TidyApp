@@ -7,7 +7,7 @@ import org.tidy.feature_clients.domain.repositories.ClientRepository
 class GetClientByIdUseCase(
     private val clientRepository: ClientRepository
 ) {
-    suspend operator fun invoke(clientId: Int): Client? {
+    suspend operator fun invoke(clientId: String): Client? {
         // 🔥 Tenta buscar localmente primeiro
         val localClient = clientRepository.getClientById(clientId)
         if (localClient != null) return localClient
