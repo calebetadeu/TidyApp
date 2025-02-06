@@ -1,17 +1,14 @@
 package org.tidy.feature_clients.data.remote
 
 import ClientEntity
-import org.tidy.feature_clients.data.local.Converters
+import com.google.firebase.firestore.PropertyName
 import org.tidy.feature_clients.domain.model.Client
 
-
-
-import com.google.firebase.firestore.PropertyName
-
 data class ClientDto(
+    val id: String? = null,
 
     @get:PropertyName("Codigo Tidy") @set:PropertyName("Codigo Tidy")
-    var codigoTidy: Int = 0, // 🔥 Código principal do cliente
+    var codigoTidy: Int? = null,
 
     @get:PropertyName("Razão Social") @set:PropertyName("Razão Social")
     var razaoSocial: String = "",
@@ -23,24 +20,23 @@ data class ClientDto(
     var estado: String = "",
 
     @get:PropertyName("Rota") @set:PropertyName("Rota")
-    var rota: String? = null, // 🔥 Permitir valores nulos
+    var rota: String? = null,
 
     @get:PropertyName("Empresas Trabalhadas") @set:PropertyName("Empresas Trabalhadas")
     var empresasTrabalhadas: List<String> = emptyList(),
 
     @get:PropertyName("CNPJ") @set:PropertyName("CNPJ")
-    var cnpj: String? = null, // 🔥 Permitir valores nulos
+    var cnpj: String? = null,
 
     @get:PropertyName("Nome Fantasia") @set:PropertyName("Nome Fantasia")
-    var nomeFantasia: String? = null, // 🔥 Permitir valores nulos
+    var nomeFantasia: String? = null,
 
     @get:PropertyName("Latitude") @set:PropertyName("Latitude")
-    var latitude: Double? = null, // 🔥 Permitir valores nulos
+    var latitude: Double? = null,
 
     @get:PropertyName("Longitude") @set:PropertyName("Longitude")
-    var longitude: Double? = null, // 🔥 Permitir valores nulos
+    var longitude: Double? = null,
 
-    // **🚀 Adicionando os códigos extras**
     @get:PropertyName("Codigo Casa Dos Rolamentos") @set:PropertyName("Codigo Casa Dos Rolamentos")
     var codigoCasaDosRolamentos: Int? = null,
 
@@ -55,16 +51,70 @@ data class ClientDto(
 
     @get:PropertyName("Codigo Romar Mann") @set:PropertyName("Codigo Romar Mann")
     var codigoRomarMann: Int? = null
-)
+) {
+    // 🔥 Construtor sem argumentos necessário para Firestore
+    constructor() : this(
+        id = null,
+        codigoTidy = null,
+        razaoSocial = "",
+        cidade = "",
+        estado = "",
+        rota = null,
+        empresasTrabalhadas = emptyList(),
+        cnpj = null,
+        nomeFantasia = null,
+        latitude = null,
+        longitude = null,
+        codigoCasaDosRolamentos = null,
+        codigoDitrator = null,
+        codigoIndagril = null,
+        codigoPrimus = null,
+        codigoRomarMann = null
+    )
+
+    // 🔥 Conversão segura para evitar erros de tipo ao desserializar
+    fun safeConvert(): ClientDto {
+        return this.copy(
+            codigoTidy = safeInt(codigoTidy),
+            latitude = safeDouble(latitude),
+            longitude = safeDouble(longitude),
+            codigoCasaDosRolamentos = safeInt(codigoCasaDosRolamentos),
+            codigoDitrator = safeInt(codigoDitrator),
+            codigoIndagril = safeInt(codigoIndagril),
+            codigoPrimus = safeInt(codigoPrimus),
+            codigoRomarMann = safeInt(codigoRomarMann),
+        )
+    }
+
+    private fun safeInt(value: Any?): Int? {
+        return when (value) {
+            is Int -> value
+            is String -> value.toIntOrNull()
+            is Long -> value.toInt()
+            else -> null
+        }
+    }
+
+    private fun safeDouble(value: Any?): Double? {
+        return when (value) {
+            is Double -> value
+            is String -> value.toDoubleOrNull()
+            is Long -> value.toDouble()
+            else -> null
+        }
+    }
+}
+// 🔹 Converter `ClientDto` para `Client` (para uso no domínio)
 fun ClientDto.toDomain(): Client {
     return Client(
+        id = id,
         codigoTidy = codigoTidy,
-        nomeFantasia =nomeFantasia,
+        nomeFantasia = nomeFantasia,
         razaoSocial = razaoSocial,
         rota = rota,
         cidade = cidade,
         estado = estado,
-        latitude =latitude,
+        latitude = latitude,
         longitude = longitude,
         cnpj = cnpj,
         empresasTrabalhadas = empresasTrabalhadas,
@@ -76,17 +126,18 @@ fun ClientDto.toDomain(): Client {
     )
 }
 
-// Converter DTO para Entity (para salvar no banco)
+// 🔹 Converter `ClientDto` para `ClientEntity` (para salvar no banco local)
 fun ClientDto.toEntity(): ClientEntity {
     return ClientEntity(
+        id = id ?: "",
         codigoTidy = codigoTidy,
         nomeFantasia = nomeFantasia,
         razaoSocial = razaoSocial,
         rota = rota,
         cidade = cidade,
         estado = estado,
-        latitude =latitude,
-        longitude =longitude,
+        latitude = latitude,
+        longitude = longitude,
         cnpj = cnpj,
         empresasTrabalhadas = empresasTrabalhadas,
         codigoCasaDosRolamentos = codigoCasaDosRolamentos,
@@ -96,6 +147,8 @@ fun ClientDto.toEntity(): ClientEntity {
         codigoRomarMann = codigoRomarMann
     )
 }
+
+// 🔹 Converter `ClientDto` para `Map` (para envio ao Firestore)
 fun ClientDto.toMap(): Map<String, Any?> {
     return mapOf(
         "Cidade" to cidade,

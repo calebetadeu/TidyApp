@@ -10,7 +10,7 @@ data class RegisterClientState(
     val longitude: Double = 0.0,
     val localizacao: String = "Localização não definida",
     val empresasTrabalhadas: List<String> = emptyList(),
-    val listaEmpresas: List<String> = listOf("Ditrator", "Casa Dos Rolamentos", "Romar Mann", "Indagril", "Primus"),
+    val listaEmpresas: List<String> = listOf("Ditrator", "Casa Dos Rolamentos", "Romar Mann", "Indagril", "Primus","Smart Crops"),
     val isLoading: Boolean = false,
     val successMessage: String? = null,
     val errorMessage: String? = null

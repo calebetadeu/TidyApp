@@ -8,15 +8,16 @@ import org.tidy.feature_clients.domain.model.Client
 @Entity(tableName = "clients")
 @TypeConverters(Converters::class) // 🔥 Garante que os conversores estão sendo aplicados
 data class ClientEntity(
-    @PrimaryKey val codigoTidy: Int,
+    @PrimaryKey val id: String,
+    val codigoTidy: Int?,
     val nomeFantasia: String?,
     val razaoSocial: String,
     val rota: String?,
     val cidade: String?,
     val estado: String,
     val cnpj: String?,
-    val latitude: Double?,
-    val longitude: Double?,
+//    val latitude: Double?,
+//    val longitude: Double?,
     val empresasTrabalhadas: List<String>,
 
     // 🔥 Novos campos que foram adicionados recentemente
@@ -24,7 +25,9 @@ data class ClientEntity(
     val codigoDitrator: Int?,
     val codigoIndagril: Int?,
     val codigoPrimus: Int?,
-    val codigoRomarMann: Int?
+    val codigoRomarMann: Int?,
+    val latitude: Double?,
+    val longitude: Double?
 )
 fun ClientEntity.toDomain(): Client {
     return Client(
@@ -32,16 +35,18 @@ fun ClientEntity.toDomain(): Client {
         nomeFantasia = nomeFantasia,
         razaoSocial = razaoSocial,
         rota = rota,
-        cidade = cidade,
-        estado = estado,
-        latitude = latitude,
-        longitude = longitude,
         cnpj = cnpj,
+        cidade = cidade,
+//        latitude = latitude,
+//        longitude = longitude,
+        estado = estado,
         empresasTrabalhadas = empresasTrabalhadas,
         codigoCasaDosRolamentos = codigoCasaDosRolamentos,
         codigoDitrator = codigoDitrator,
         codigoIndagril = codigoIndagril,
         codigoPrimus = codigoPrimus,
-        codigoRomarMann = codigoRomarMann
+        codigoRomarMann = codigoRomarMann,
+        latitude = latitude,
+        longitude = longitude
     )
 }

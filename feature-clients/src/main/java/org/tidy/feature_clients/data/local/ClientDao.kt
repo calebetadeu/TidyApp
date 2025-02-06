@@ -28,7 +28,7 @@ interface ClientDao {
 
 
     @Query("SELECT * FROM clients WHERE codigoTidy = :clientId LIMIT 1")
-    suspend fun getClientById(clientId: Int): ClientEntity?
+    suspend fun getClientById(clientId: String): ClientEntity?
 
 }
 

@@ -1,5 +1,6 @@
 package org.tidy.feature_clients.presentation.edit_client
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -7,16 +8,28 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.tidy.feature_clients.data.remote.LocationDto
 import org.tidy.feature_clients.domain.useCase.GetClientByIdUseCase
+import org.tidy.feature_clients.domain.useCase.GetLocationsUseCase
 import org.tidy.feature_clients.domain.useCase.UpdateClientUseCase
 
 class EditClientViewModel(
     private val getClientByIdUseCase: GetClientByIdUseCase,
-    private val updateClientUseCase: UpdateClientUseCase
+    private val getLocationsUseCase: GetLocationsUseCase,
+    private val updateClientUseCase: UpdateClientUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EditClientState())
     val state: StateFlow<EditClientState> = _state.asStateFlow()
+
+    private val _locations = mutableStateOf<List<LocationDto>>(emptyList())
+    val locations get() = _locations.value
+
+    fun getLocations() {
+        viewModelScope.launch {
+            _locations.value = getLocationsUseCase()
+        }
+    }
 
     fun onAction(action: EditClientAction) {
         when (action) {
@@ -30,11 +43,11 @@ class EditClientViewModel(
                                 razaoSocial = client.razaoSocial,
                                 nomeFantasia = client.nomeFantasia ?: "",
                                 cnpj = client.cnpj ?: "",
-                                localizacao = if (client.latitude != null && client.longitude != null) {
-                                    "${client.latitude}, ${client.longitude}"
-                                } else {
-                                    "Localização não definida"
-                                }, // 🔥 Atualizando Localização
+//                                localizacao = if (client.latitude != null && client.longitude != null) {
+//                                    "${client.latitude}, ${client.longitude}"
+//                                } else {
+//                                    "Localização não definida"
+//                                }, // 🔥 Atualizando Localização
                                 cidade = client.cidade?:"",
                                 estado = client.estado,
                                 rota = client.rota?:"",
@@ -69,8 +82,8 @@ class EditClientViewModel(
                     razaoSocial = state.value.razaoSocial,
                     nomeFantasia = if (state.value.nomeFantasia.isNotEmpty()) state.value.nomeFantasia else client.nomeFantasia,
                     cnpj = if (state.value.cnpj.isNotEmpty()) state.value.cnpj else client.cnpj,
-                    latitude = if (state.value.localizacao.isNotEmpty()) parseLatLong(state.value.localizacao).first else client.latitude,
-                    longitude = if (state.value.localizacao.isNotEmpty()) parseLatLong(state.value.localizacao).second else client.longitude,
+//                    latitude = if (state.value.localizacao.isNotEmpty()) parseLatLong(state.value.localizacao).first else client.latitude,
+//                    longitude = if (state.value.localizacao.isNotEmpty()) parseLatLong(state.value.localizacao).second else client.longitude,
                     cidade = state.value.cidade,
                     estado = state.value.estado,
                     rota = state.value.rota,
@@ -80,26 +93,26 @@ class EditClientViewModel(
                 updateClientUseCase(updatedClient) // 🔥 Atualiza no banco local e Firestore
 
                 // 🔥 **Força o recarregamento do cliente após a atualização**
-                val reloadedClient = getClientByIdUseCase(client.codigoTidy)
-                if (reloadedClient != null) {
-                    _state.update {
-                        it.copy(
-                            client = reloadedClient,
-                            razaoSocial = reloadedClient.razaoSocial,
-                            nomeFantasia = reloadedClient.nomeFantasia ?: "",
-                            cnpj = reloadedClient.cnpj ?: "",
-                            localizacao = if (reloadedClient.latitude != null && reloadedClient.longitude != null) {
-                                "${reloadedClient.latitude}, ${reloadedClient.longitude}"
-                            } else {
-                                "Localização não definida"
-                            },
-                            cidade = reloadedClient.cidade?:"",
-                            estado = reloadedClient.estado,
-                            rota = reloadedClient.rota?:"",
-                            empresasTrabalhadas = reloadedClient.empresasTrabalhadas
-                        )
-                    }
-                }
+//                val reloadedClient = getClientByIdUseCase(client.id.toString())
+//                if (reloadedClient != null) {
+//                    _state.update {
+//                        it.copy(
+//                            client = reloadedClient,
+//                            razaoSocial = reloadedClient.razaoSocial,
+//                            nomeFantasia = reloadedClient.nomeFantasia ?: "",
+//                            cnpj = reloadedClient.cnpj ?: "",
+////                            localizacao = if (reloadedClient.latitude != null && reloadedClient.longitude != null) {
+////                                "${reloadedClient.latitude}, ${reloadedClient.longitude}"
+////                            } else {
+////                                "Localização não definida"
+////                            },
+//                            cidade = reloadedClient.cidade?:"",
+//                            estado = reloadedClient.estado,
+//                            rota = reloadedClient.rota?:"",
+//                            empresasTrabalhadas = reloadedClient.empresasTrabalhadas
+//                        )
+//                    }
+//                }
             }
         }
     }
