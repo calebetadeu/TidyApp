@@ -25,6 +25,7 @@ import org.tidy.feature_clients.presentation.location.LocationsViewModel
 import org.tidy.feature_clients.presentation.register_client.RegisterClientScreen
 import org.tidy.tidyapp.navigation.Route.Home
 import org.tidy.tidyapp.presentation.HomeScreen
+import org.tidy.upload.presentation.ReportScreen
 
 @Composable
 fun NavigationApp(
@@ -102,25 +103,24 @@ fun NavigationApp(
             ) {
                 HomeScreen(
                     onNavigateToClients = {
-                        navController.navigate(Route.QuickAccessClients) },
+                        navController.navigate(Route.QuickAccessClients)
+                    },
                     onNavigateToBilling = {
-                      //  navController.navigate(Route.Billing)
-                                          },
+                        //  navController.navigate(Route.Billing)
+                    },
                     onNavigateToUpdates = {
-
-                       // navController.navigate(Route.Updates)
-
-                                          },
+                         navController.navigate(Route.Upload)
+                    },
                     onNavigateToPlanning = {
-                     //   navController.navigate(Route.Planning)
-                                           },
+                        //   navController.navigate(Route.Planning)
+                    },
                     userEmail = "teste"
                 )
             }
             composable<Route.ListClients> {
 
                 ClientListScreen(
-                    locations =locationViewModel.locations ,
+                    locations = locationViewModel.locations,
                     onNavigateToEditClient = { clientId ->
                         navController.navigate(Route.EditClient(clientId))
                     }
@@ -129,18 +129,22 @@ fun NavigationApp(
             composable<Route.QuickAccessClients> {
                 QuickAccessScreen(
                     onRegisterClientClick = {
-                        navController.navigate(Route.RegisterClient) },
+                        navController.navigate(Route.RegisterClient)
+                    },
                     onViewClientsClick = {
-                        navController.navigate(Route.ListClients) }
+                        navController.navigate(Route.ListClients)
+                    }
                 )
             }
             composable<Route.RegisterClient> {
                 RegisterClientScreen(
                     onNavigateBack = { navController.popBackStack() },
-                    locations =locationViewModel.locations ,
+                    locations = locationViewModel.locations,
                     onNavigateToClientList = {
                         navController.navigate(Route.ListClients) {
-                            popUpTo(Route.RegisterClient) { inclusive = true } // 🔥 Remove a tela de cadastro do backstack
+                            popUpTo(Route.RegisterClient) {
+                                inclusive = true
+                            } // 🔥 Remove a tela de cadastro do backstack
                         }
                     }
 
@@ -151,10 +155,13 @@ fun NavigationApp(
 
                 EditClientScreen(
                     clientId = client.clientId,
-                    locations =locationViewModel.locations,
+                    locations = locationViewModel.locations,
                     onNavigateBack = { navController.popBackStack() }
                 )
 
+            }
+            composable<Route.Upload> {
+                ReportScreen()
             }
 
         }

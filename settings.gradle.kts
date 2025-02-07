@@ -26,3 +26,4 @@ include(":core")
 include(":feature-auth")
 
 include(":feature-clients")
+include(":feature-upload")

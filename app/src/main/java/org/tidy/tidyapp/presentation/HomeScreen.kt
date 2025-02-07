@@ -45,7 +45,7 @@ fun HomeScreen(
         ) {
             QuickAccessButton("Clientes", onNavigateToClients)
             QuickAccessButton("Faturamento", onNavigateToBilling, enable = false)
-            QuickAccessButton("Atualizações", onNavigateToUpdates, enable = false)
+            QuickAccessButton("Atualizações", onNavigateToUpdates, enable = true)
             QuickAccessButton("Programações",  onNavigateToPlanning, enable = false)
         }
     }
