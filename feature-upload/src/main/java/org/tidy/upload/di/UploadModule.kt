@@ -13,7 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 val uploadModule = module {
     single {
         Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:8001/")
+            .baseUrl("https://tidy-api-b2e9a63fe70c.herokuapp.com/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
