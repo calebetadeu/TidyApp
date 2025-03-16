@@ -52,6 +52,12 @@ dependencies {
 
     implementation("androidx.paging:paging-compose:3.3.5")
 
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.moshi.converter)
+    implementation(libs.moshi.kotlin)
+    implementation(libs.logging.interceptor)
 
     implementation(libs.bundles.koin)
     implementation(libs.gson)

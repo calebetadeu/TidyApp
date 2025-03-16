@@ -1,6 +1,7 @@
 package org.tidy.feature_clients.presentation.edit_client
 
 import android.Manifest
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -17,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CloudSync
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,13 +40,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import org.koin.androidx.compose.koinViewModel
 import org.tidy.feature_clients.data.remote.LocationDto
-import org.tidy.feature_clients.presentation.clients_list.components.CityDropdownWithSearch
-import org.tidy.feature_clients.presentation.clients_list.components.StateDropdown
-import org.tidy.feature_clients.presentation.clients_list.components.getCurrentLocation
+import org.tidy.feature_clients.domain.model.Localization
+import org.tidy.feature_clients.presentation.components.CityDropdownWithSearch
+import org.tidy.feature_clients.presentation.components.StateDropdown
+import org.tidy.feature_clients.presentation.components.getCurrentLocation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,10 +58,10 @@ fun EditClientScreen(
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    var isEditing by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    
     val empresasDisponiveis = listOf(
         "Casa Dos Rolamentos",
         "Ditrator",
@@ -68,9 +71,10 @@ fun EditClientScreen(
         "Primus",
         "Smart Crops"
     )
+
+    // Estados para seleção de estado e cidade
     var selectedState by remember { mutableStateOf(state.estado) }
     var selectedCity by remember { mutableStateOf(state.cidade) }
-   // val locations = viewModel.locations
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -80,7 +84,6 @@ fun EditClientScreen(
         }
     }
 
-
     LaunchedEffect(clientId) {
         viewModel.onAction(EditClientAction.LoadClient(clientId))
     }
@@ -88,15 +91,29 @@ fun EditClientScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Editar Cliente") },
+                title = { Text(if (isEditing) "Editar Cliente" else "Detalhes do Cliente") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar"
+                        )
                     }
                 },
                 actions = {
+                    if (!isEditing) {
+                        IconButton(onClick = { isEditing = true }) {
+                            Icon(
+                                imageVector = Icons.Filled.Edit,
+                                contentDescription = "Editar"
+                            )
+                        }
+                    }
                     IconButton(onClick = { viewModel.onAction(EditClientAction.SyncClient) }) {
-                        Icon(Icons.Default.CloudSync, contentDescription = "Sincronizar")
+                        Icon(
+                            imageVector = Icons.Default.CloudSync,
+                            contentDescription = "Sincronizar"
+                        )
                     }
                 }
             )
@@ -109,24 +126,29 @@ fun EditClientScreen(
                     .padding(16.dp)
                     .verticalScroll(scrollState)
             ) {
-                EditTextField("Razão Social", state.razaoSocial) {
-                    viewModel.onAction(EditClientAction.OnRazaoSocialChange(it))
-                }
-
-                EditTextField("Nome Fantasia", state.nomeFantasia) {
-                    viewModel.onAction(EditClientAction.OnNomeFantasiaChange(it))
-                }
-
-                EditTextField("CNPJ", state.cnpj) {
-                    viewModel.onAction(EditClientAction.OnCnpjChange(it))
-                }
+                EditTextField(
+                    label = "Razão Social",
+                    value = state.razaoSocial,
+                    onValueChange = { viewModel.onAction(EditClientAction.OnRazaoSocialChange(it)) },
+                    enabled = isEditing
+                )
+                EditTextField(
+                    label = "Nome Fantasia",
+                    value = state.nomeFantasia,
+                    onValueChange = { viewModel.onAction(EditClientAction.OnNomeFantasiaChange(it)) },
+                    enabled = isEditing
+                )
+                EditTextField(
+                    label = "CNPJ",
+                    value = state.cnpj,
+                    onValueChange = { viewModel.onAction(EditClientAction.OnCnpjChange(it)) },
+                    enabled = isEditing
+                )
                 StateDropdown(
                     locations = locations,
                     selectedState = selectedState,
                     defaultState = state.estado,
-                    onStateSelected = { newState->
-                        selectedState = newState
-                    }
+                    onStateSelected = { newState -> selectedState = newState }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 CityDropdownWithSearch(
@@ -134,33 +156,62 @@ fun EditClientScreen(
                     selectedState = selectedState,
                     selectedCity = selectedCity,
                     defaultCity = state.cidade,
-                    onCitySelected = { city ->
-                        selectedCity = city
-                    }
+                    onCitySelected = { city -> selectedCity = city }
                 )
-
-                EditTextField("Rota", state.rota) {
-                    viewModel.onAction(EditClientAction.OnRotaChange(it))
+                EditTextField(
+                    label = "Rota",
+                    value = state.rota,
+                    onValueChange = { viewModel.onAction(EditClientAction.OnRotaChange(it)) },
+                    enabled = isEditing
+                )
+                EditTextField(
+                    label = "Localização",
+                    value = "${state.localizacao?.latitude}, ${state.localizacao?.longitude}",
+                    onValueChange = { input ->
+                        val parts = input.split(",")
+                        if (parts.size == 2) {
+                            viewModel.onAction(
+                                EditClientAction.OnLocalizacaoChange(
+                                    Localization(
+                                        latitude = parts[0].trim().toDoubleOrNull() ?: 0.0,
+                                        longitude = parts[1].trim().toDoubleOrNull() ?: 0.0
+                                    )
+                                )
+                            )
+                        }
+                    },
+                    enabled = isEditing
+                )
+                if(state.localizacao == null || state.localizacao != Localization(0.0, 0.0)  && !isEditing){
+                    Button(
+                        onClick = {
+                            state.localizacao?.let { loc ->
+                                // Cria a URI no formato 'geo:'
+                                val uri =
+                                    "geo:${loc.latitude},${loc.longitude}?q=${loc.latitude},${loc.longitude}(${state.razaoSocial})".toUri()
+                                val intent = Intent(Intent.ACTION_VIEW, uri)
+                                // Inicia o intent para abrir o Maps
+                                context.startActivity(intent)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Abrir no Maps")
+                    }
                 }
-
-                EditTextField("Localização", state.localizacao) {
-                    viewModel.onAction(EditClientAction.OnLocalizacaoChange(it))
-                }
-
-                Button(onClick = {
-                    locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                }) {
-                    Text("Usar Localização Atual")
+                if(isEditing){
+                    Button(onClick = {
+                        locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                    }) {
+                        Text("Usar Localização Atual")
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Text("Empresas Trabalhadas", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-
                 empresasDisponiveis.forEach { empresa ->
                     val isChecked = state.empresasTrabalhadas.contains(empresa)
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -169,65 +220,79 @@ fun EditClientScreen(
                     ) {
                         Checkbox(
                             checked = isChecked,
-                            onCheckedChange = { isSelected ->
+                            onCheckedChange = if (isEditing) { isSelected ->
                                 val updatedList = if (isSelected) {
                                     state.empresasTrabalhadas + empresa
                                 } else {
                                     state.empresasTrabalhadas - empresa
                                 }
-                                viewModel.onAction(EditClientAction.OnEmpresasTrabalhadasChange(updatedList))
-                            }
+                                viewModel.onAction(
+                                    EditClientAction.OnEmpresasTrabalhadasChange(updatedList)
+                                )
+                            } else null
                         )
                         Text(text = empresa, modifier = Modifier.padding(start = 8.dp))
                     }
                 }
-
-                Button(
-                    onClick = {
-                        viewModel.onAction(EditClientAction.OnEstadoChange(selectedState))
-                        viewModel.onAction(EditClientAction.OnCidadeChange(selectedCity))
-                        viewModel.onAction(EditClientAction.SaveClient)
-                        onNavigateBack()
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Salvar Alterações")
+                if (isEditing) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            // Atualiza os campos de estado e cidade e salva as alterações
+                            viewModel.onAction(EditClientAction.OnEstadoChange(selectedState))
+                            viewModel.onAction(EditClientAction.OnCidadeChange(selectedCity))
+                            viewModel.onAction(EditClientAction.SaveClient)
+                            isEditing = false
+                            onNavigateBack()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Salvar Alterações")
+                    }
                 }
             }
         }
     )
 }
-// 🚀 **Campo Editável Padrão**
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditTextField(label: String, value: String, onValueChange: (String) -> Unit) {
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
-        decorationBox = { innerTextField ->
-            TextFieldDefaults.DecorationBox(
-                value = value,
-                innerTextField = innerTextField,
-                label = { Text(label) },
-                enabled = true,
-                singleLine = true,
-                visualTransformation = VisualTransformation.None,
-                interactionSource = remember { MutableInteractionSource() },
-                contentPadding = TextFieldDefaults.textFieldWithoutLabelPadding(
-                    start = 0.dp,
-                    end = 0.dp
+fun EditTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    enabled: Boolean = true
+) {
+    if (enabled) {
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            decorationBox = { innerTextField ->
+                TextFieldDefaults.DecorationBox(
+                    value = value,
+                    innerTextField = innerTextField,
+                    label = { Text(label) },
+                    enabled = enabled,
+                    singleLine = true,
+                    visualTransformation = VisualTransformation.None,
+                    interactionSource = remember { MutableInteractionSource() },
+                    contentPadding = TextFieldDefaults.textFieldWithoutLabelPadding(
+                        start = 0.dp,
+                        end = 0.dp
+                    )
                 )
-            )
+            }
+        )
+    } else {
+        // Modo somente leitura: exibe o label e o valor
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            Text(text = label, style = MaterialTheme.typography.labelSmall)
+            Text(text = value, style = MaterialTheme.typography.bodyLarge)
         }
-    )
-}
-
-
-@Preview
-@Composable
-fun EditClientScreenPreview() {
-    EditClientScreen(clientId = "", onNavigateBack = {}, locations = listOf(LocationDto(
-        listaCidades = listOf("São Paulo", "Rio de Janeiro", "Belo Horizonte")
-    )))
+    }
 }

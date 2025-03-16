@@ -1,11 +1,10 @@
 package org.tidy.feature_clients.domain.useCase
 
-import kotlinx.coroutines.flow.Flow
 import org.tidy.feature_clients.domain.model.Client
-import org.tidy.feature_clients.domain.repositories.ClientRepository
+import org.tidy.feature_clients.domain.repository.ClientRepository
 
 class GetClientsUseCase(private val repository: ClientRepository) {
-    operator fun invoke(): Flow<List<Client>> {
-        return repository.getClients()
+    suspend operator fun invoke(skip: Int = 0, limit: Int = 100): List<Client> {
+        return repository.getClients(skip, limit)
     }
 }

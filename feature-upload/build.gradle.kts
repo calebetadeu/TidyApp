@@ -35,8 +35,14 @@ android {
 
 dependencies {
     implementation(project(":core"))
+
     implementation(project(":core-ui"))
     implementation(libs.bundles.koin)
+
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+
 
     implementation(libs.bundles.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
