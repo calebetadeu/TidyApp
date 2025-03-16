@@ -30,4 +30,7 @@ sealed interface Route {
     data class Home(val email: String): Route
     @Serializable
     data class EditClient(val clientId: String): Route
+
+    @Serializable
+    data object Upload:Route
 }

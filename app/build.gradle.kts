@@ -14,8 +14,8 @@ android {
         applicationId = "org.tidy.tidyapp"
         minSdk = 24
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":core-ui"))
     implementation(project(":feature-auth"))
     implementation(project(":feature-clients"))
+    implementation(project(":feature-upload"))
     implementation(libs.navigation.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.serialization.json)

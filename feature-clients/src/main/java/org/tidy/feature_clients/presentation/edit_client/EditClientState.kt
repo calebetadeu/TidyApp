@@ -1,19 +1,17 @@
 package org.tidy.feature_clients.presentation.edit_client
 
-import org.tidy.feature_clients.domain.model.Client
-
+import org.tidy.feature_clients.domain.model.Localization
 
 data class EditClientState(
-    val client: Client? = null,
+    val id: Long = 0L,
     val razaoSocial: String = "",
     val nomeFantasia: String = "",
     val cnpj: String = "",
-    val localizacao: String = "Localização não definida", // 🔥 Agora um único campo
-    val cidade: String = "",
     val estado: String = "",
+    val cidade: String = "",
     val rota: String = "",
-    val empresasTrabalhadas: List<String> = emptyList(), // 🔥 Lista de empresas
-    val isLoading: Boolean = false,
+    val localizacao: Localization? = null,
+    val empresasTrabalhadas: List<String> = emptyList(),
     val successMessage: String? = null,
     val errorMessage: String? = null
 )
